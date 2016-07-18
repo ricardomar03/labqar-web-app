@@ -1,0 +1,39 @@
+{% extends 'labqar/index.html' %}
+
+{% block header_title_block %}
+    Definições Conta
+{% endblock %}
+
+{% block button_selected %}
+<a class="mdl-navigation__link " href="/overview/2"><i class="material-icons"
+                                                       role="presentation">assignment</i>Overview</a>
+<a class="mdl-navigation__link " href="/medicoes/2"><i class="material-icons"
+                                                                                    role="presentation">explore</i>Medições</a>
+<a class="mdl-navigation__link" href="/about"><i class="material-icons"
+                                                 role="presentation">info</i>Informações</a>
+<a class="mdl-navigation__link mdl-navigation__link_selected" href="/settings/2"><i class="material-icons"
+                                                      role="presentation">settings</i>Definições de
+    Conta</a>
+{% if request.user.is_staff %}
+<a class="mdl-navigation__link" href="/admin/"><i class="material-icons" role="presentation">build</i>Página
+    de
+    Administração</a>
+{% endif%}
+<a class="mdl-navigation__link" href="/accounts/logout/"
+   onclick="return confirm('Tem a certeza que pretende sair?')"><i class="material-icons"
+                                                                   role="presentation">power_settings_new</i>Sair</a>
+{% endblock %}
+
+{% block body_block %}
+    <div class="mdl-grid demo-content">
+            <div class="demo-charts mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
+
+            </div>
+
+            <ul class="demo-list-item mdl-list">
+                    {% for data in data_list %}
+                    <li class="mdl-list__item">{{ data }}</li>
+                    {% endfor %}
+            </ul>
+        </div>
+{% endblock %}

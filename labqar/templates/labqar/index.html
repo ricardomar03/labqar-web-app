@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+{% load staticfiles %}
+<head>
+    <meta charset="utf-8">
+    <meta mimetype="text/html">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Labqar - Homepage</title>
+
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.green-indigo.min.css"/>
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+    <link rel="stylesheet" href="{% static 'labqar/styles.css' %}">
+
+    <link href="http://code.jquery.com/ui/1.10.4/themes/flick/jquery-ui.css" rel="stylesheet">
+      <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+      <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+
+    <style>
+        .drawer-header-background {
+            background: url("{% static 'labqar/images/Header.png' %}") center / cover;
+        }
+        {% block background_block %}
+        .background {
+            {% if background == None %}
+            background: url("{% static 'labqar/images/background6.jpeg' %}") center / cover;
+            {% else %}
+            background: url("{{ MEDIA_URL }} {{background}} ") center / cover;
+            {% endif %}
+        }
+        {% endblock %}
+    </style>
+</head>
+<body>
+    <div class="background mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header ">
+        <!-- HEADER DEFINITION -->
+        <header class="header_title mdl-layout__header ">
+            <div class="mdl-layout__header-row">
+            <span class="mdl-layout-title">
+                {% block header_title_block %}
+                    Overview
+                {% endblock %}
+            </span>
+                {% block header_menu %}
+                    <div class="mdl-layout-spacer"></div>
+                    <h6> Campanha </h6>
+                    <button id="accbtn" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                        <i class="material-icons" role="presentation">arrow_drop_down</i>
+                    </button>
+                    <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="accbtn">
+                         {% if request.user.is_staff %}
+                        <a class="mdl-menu__item" href="/"> Medição Atual </a>
+                        {% endif %}
+                        {% for campaign in campaigns %}
+                        <a class="mdl-menu__item" href="/{{campaign.id}}"> {{ campaign }}</a>
+                        {% endfor %}
+                    </ul>
+                    <form action="/day/" method='POST' id='formId'> {% csrf_token %}
+                        <input type="text" readonly="readonly" class="hint" value="Selecionar dia..." style="position: relative; z-index: 100000;" id="datepicker" name="datepicker"
+                           onfocus="if (this.className=='hint') { this.className = ''; this.value = ''; }"
+                           onblur="if (this.value == '') { this.className = 'hint'; this.value = 'Selecionar dia...'; }">
+                    </form>
+                {% endblock %}
+            </div>
+        </header>
+
+        <!-- DRAWER DEFINITION -->
+        <div class="drawer mdl-layout__drawer ">
+            <header class="drawer-header-background drawer-header">
+                {% load staticfiles %}
+                <img src="{% static 'labqar/images/logo.jpeg' %}" class="avatar"/>
+                <div class="avatar-name">
+                    <span> {{ username }}</span>
+                </div>
+            </header>
+            <nav class="navigation mdl-navigation">
+                {% block button_selected %}
+                <a class="mdl-navigation__link mdl-navigation__link_selected" href="/"><i
+                        class="material-icons"
+                        role="presentation">assignment</i>Overview</a>
+                <a class="mdl-navigation__link" href="/medicoes"><i class="material-icons"
+                                                                      role="presentation">explore</i>Medições</a>
+                <!--<a class="mdl-navigation__link" href="/about"><i class="material-icons"
+                                                                 role="presentation">info</i>Informações</a>-->
+                <a class="mdl-navigation__link" href="/alerts/"><i class="material-icons" role="presentation">warning</i>Alertas</a>
+                {% if request.user.is_staff %}
+                <a class="mdl-navigation__link" href="/admin/"><i class="material-icons" role="presentation">build</i>Página
+                    de
+                    Administração</a>
+                {% endif%}
+                <a class="mdl-navigation__link" href="#definicoes"><i class="material-icons"
+                                                                      role="presentation">settings</i>Definições de
+                    Conta</a>
+                <a class="mdl-navigation__link" href="/accounts/logout/"
+                   onclick="return confirm('Tem a certeza que pretende sair?')"><i class="material-icons"
+                                                                                   role="presentation">power_settings_new</i>Sair</a>
+                {% endblock %}
+            </nav>
+        </div>
+        <main class="mdl-layout__content">
+            {% block body_block %}
+            <div class="measurement_time_div mdl-shadow--4dp">
+                <span id="update_date" class="measurement_time mdl-card__title-text">
+                    {% if selected_campaign != None %}
+                        Campanha: {{ selected_campaign }} <br/>
+                    {% endif %}
+
+                    {% if last_update != None %}
+                        Dados recolhidos a {{ last_update.date_time }}
+                    {% else %}
+                        Não existem dados para apresentar
+                    {% endif %}
+                </span>
+            </div>
+
+            {% if last_update != None %}
+            <div class="mdl-outer-grid">
+                <div class="mdl-grid">
+                    <div class="mdl-cell mdl-cell--2-offset-desktop mdl-cell--4-col-tablet mdl-cell--4-col mdl-card mdl-shadow--4dp">
+                        <div class="mdl-card--expand">
+                            <div class="row" id="arch">
+                                <div class="metric {{index_color}}" data-ratio={{index_value | safe }}>
+                                    <svg width="100%" height="50%" viewBox="0 0 1000 500" >
+                                        <path d="M 950 500 A 450 450 0 0 0 50 500"></path>
+                                        <text class='title' text-anchor="middle" alignment-baseline="middle" x="500" y="450"
+                                              font-size="90" font-weight="normal"> {{index}}
+                                        </text>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mdl-cell mdl-cell--5-col-phone mdl-cell--4-col-tablet mdl-cell--3-col mdl-card mdl-shadow--4dp">
+                        <div class="mdl-card--expand">
+                            <div class="mdl-card--expand">
+                                <span class="informations mdl-card__title-text">Classificação da Qualidade do ar</span>
+                                    <span class=" informations_item mdl-navigation__link"><i class="material-icons info_red"
+                                                                      role="presentation">crop_square</i>Mau</span><br/>
+                                    <span class=" informations_item mdl-navigation__link"><i class="material-icons info_orange"
+                                                                      role="presentation">crop_square</i>Fraco</span><br/>
+                                    <span class=" informations_item mdl-navigation__link"><i class="material-icons info_yellow"
+                                                                      role="presentation">crop_square</i>Médio</span><br/>
+                                    <span class=" informations_item mdl-navigation__link"><i class="material-icons info_darkgreen"
+                                                                      role="presentation">crop_square</i>Bom</span><br/>
+                                    <span class=" informations_item mdl-navigation__link"><i class="material-icons info_green"
+                                                                      role="presentation">crop_square</i>Muito Bom</span><br/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="mdl-grid">
+                <div class="mdl-cell mdl-cell--2-offset-desktop mdl-cell--4-col-tablet mdl-cell--7-col mdl-card mdl-shadow--4dp">
+                    <div class="mdl-card--expand">
+                        <div id="chart_div">
+
+                        </div>
+                    </div>
+                    <div class="mdl-card__actions mdl-card--border">
+                        <a id="charts_button" class="mdl-button mdl-button--accent mdl-js-button mdl-js-ripple-effect" href="#grafico2"
+                           onclick="openChart()">
+                            Variação nas últimas 24h
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+            <div id="grafico2" class="mdl-card mdl-shadow--4dp">
+                <div class="chart_wrap mdl-card--expand">
+                        <div id="chart">
+
+                        </div>
+                </div>
+            </div>
+            <div id="mask2" onclick="document.location='#';"></div> <!-- the only javascript -->
+
+            {% endif %}
+            {% endblock %}
+            <div id="definicoes" class="mdl-card mdl-shadow--4dp">
+                <form action="/accounts/change_user_data/" method="post">{% csrf_token %}
+                    <div class="mdl-card--expand ">
+                        <span class="changes_title mdl-card__title-text"> Altere as definições que desejar </span>
+                        <div class="mdl-card__supporting-text">
+                            <div>
+                                <i class="material-icons" role="presentation">perm_identity</i>
+                                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label ">
+                                    <input class="mdl-textfield__input" type="text" name="name" value=""
+                                           id="name"/>
+                                    <label class="mdl-textfield__label" for="name">Novo nome: </label>
+                                </div>
+                            </div>
+                            <div>
+                                <i class="material-icons" role="presentation">account_circle</i>
+                                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label ">
+                                    <input class="mdl-textfield__input" type="text" name="username" value=""
+                                           id="username"/>
+                                    <label class="mdl-textfield__label" for="username">Novo username: </label>
+                                </div>
+                            </div>
+                            <div>
+                                <i class="material-icons" role="presentation">lock</i>
+                                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label ">
+                                    <input class="mdl-textfield__input" type="password" name="password" value=""
+                                           id="password"/>
+                                    <label class="mdl-textfield__label" for="password">Nova Password: </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="actions mdl-card__actions mdl-card--border">
+                            <input class="changes-button mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+                                   type="submit"
+                                   value="Guardar"/>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div id="mask" onclick="document.location='#';"></div> <!-- the only javascript -->
+        </main>
+
+    </div>
+    <script src="https://code.getmdl.io/1.1.2/material.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    {% block aditional_scripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/snap.svg/0.4.1/snap.svg-min.js"></script>
+
+    <script type="text/javascript">
+        $(function () {
+            var superuser = "{{ request.user.is_staff | safe }}";
+            var campaigns_js = [];
+            var count = 0;
+            var startDate, endDate;
+            var toggle = false;
+
+            {% for campaign in campaigns %}
+                campaigns_js[count++] = "{{campaign.cam_data_inicio | date:'Y-m-d'}}";
+                campaigns_js[count++] = "{{campaign.cam_data_final | date:'Y-m-d'}}";
+            {% endfor %}
+
+            $("#datepicker").datepicker({
+                dateFormat: "yy-mm-dd",
+                showOn: "both",
+                buttonImage: "{{STATIC_URL}}/static/labqar/images/calendar.svg",
+                buttonImageOnly: true,
+                buttonText: "Select date",
+                maxDate: '0',
+                beforeShowDay: function (date) {
+                    var valid = false;
+                    for(i = 0; i < campaigns_js.length-1; i = i + 2){
+                        toggle = !toggle;
+                        startDate = new Date(campaigns_js[i]);
+                        endDate = new Date(campaigns_js[i+1]);
+
+                        if(startDate.getTimezoneOffset() != 0)
+                            startDate = new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60 * 1000)
+                        if(endDate.getTimezoneOffset() != 0)
+                            endDate = new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60 * 1000)
+
+                        if (startDate <= date && date <= endDate) {
+                            valid = true;
+                        }
+                    }
+                    if(valid == true) {
+                        return [true, "Highlighted", ""];
+                    } else {
+                        if(superuser == "True")
+                            return [true,"",""];
+                        else
+                                return [false, "", ""];
+                    }
+                },
+                onSelect: function (date, instance) {
+                    $('#formId').submit();
+                }
+            });
+        });
+    </script>
+    <script type="text/javascript">
+        function openChart() {
+            button.click();
+        }
+        var button = document.getElementById('charts_button');
+    </script>
+<script type="text/javascript">
+    // Load Charts and the corechart and barchart packages.
+    google.charts.load('current', {'packages': ['corechart']});
+
+    // Draw the pie chart and bar chart when Charts is loaded.
+    google.charts.setOnLoadCallback(drawChart);
+
+    var values = [];
+    function drawChart() {
+        var options = {};
+
+        // Create the data table.
+        var data = new google.visualization.DataTable();
+
+        // Instantiate and draw our chart, passing in some options.
+        var chart = new google.visualization.ColumnChart(document.getElementById('chart'));
+        //chart.draw(data, options);
+
+        var values = []
+        var button = document.getElementById('charts_button');
+
+
+
+        button.onclick = function () {
+            var ajax_image = "<div style='text-align: center;'><h4>Por favor, aguarde...</h4><img src={{STATIC_URL}}/static/labqar/images/ajax-loader_2.gif /> </div>"
+            $('#chart').html(ajax_image);
+            $.ajax({
+                type: "POST",
+                url: "/overview_24/",
+                data: {
+                    'date': '{{ last_update.date_time }}',
+                    'campaign': '{{selected_campaign.id}}',
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                dataType: 'json',
+                success: function (response) {
+                    values = response.values;
+                        document.getElementById('chart').innerHTML = "";
+                        data = new google.visualization.DataTable();
+                        data.addColumn('string', 'Valor');
+                        data.addColumn('number', 'Índice');
+                        data.addColumn({type: 'string', role: 'style'});
+                        data.addColumn({type: 'string', role: 'tooltip'});
+                        data.addRows(values);
+
+                        options = {
+                            'title': 'Classificação da qualidade do ar nas últimas 24 Horas',
+                            'width': '100%',
+                            'height': '100%',
+                            legend: {
+                                position: 'none'
+                            },
+                            vAxis: {
+                                ticks: [{v: 0, f: 'Indisponível'}, {v: 0.2, f: 'Muito Bom'}, {v: 0.4, f: 'Bom'}, {
+                                    v: 0.6,
+                                    f: 'Médio'
+                                }
+                                    , {v: 0.8, f: 'Fraco'}, {v: 1, f: 'Mau'}]
+                            },
+                            series: {
+                                0: {
+                                    type: 'bars'
+                                },
+                                1: {
+                                    type: 'line',
+                                    color: 'grey',
+                                    lineWidth: 0,
+                                    pointSize: 0,
+                                    visibleInLegend: false
+                                }
+                            },
+                            animation: {
+                                duration: 1000,
+                                easing: 'out',
+                                startup: true
+                            },
+                            hAxis: {
+                                direction: -1,
+                                slantedText: true,
+                                slantedTextAngle: 45
+                            },
+                            chartArea: {top: '10%', width: '75%', height: '65%'}
+                        };
+                        chart = new google.visualization.ColumnChart(document.getElementById('chart'));
+                        drawChart();
+
+                },
+                error: function (xhr, textStatus, err) {
+                    console.log("readyState: " + xhr.readyState);
+                    console.log("responseText: " + xhr.responseText);
+                    console.log("status: " + xhr.status);
+                    console.log("text status: " + textStatus);
+                    console.log("error: " + err);
+                }
+            });
+        }
+
+
+        function drawChart() {
+            chart.draw(data, options);
+        }
+
+        function resizeHandler() {
+            chart.draw(data, options);
+        }
+
+        if (window.addEventListener) {
+            window.addEventListener('resize', resizeHandler, false);
+        }
+        else if (window.attachEvent) {
+            window.attachEvent('onresize', resizeHandler);
+        }
+    }
+
+</script>
+    <script type="text/javascript">
+
+      // Set a callback to run when the Google Visualization API is loaded.
+      google.charts.setOnLoadCallback(drawChart);
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawChart() {
+        // Create the data table.
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Valor');
+        data.addColumn('number', 'Índice');
+        data.addColumn({type: 'string', role: 'style'});
+        data.addRows({{ index_values | safe}});
+
+        // Set chart options
+          var options = {
+              'title': 'Classificação dos diferentes poluentes',
+              'width': '100%',
+              'height': '100%',
+              legend: {
+                  position: 'none'
+              },
+              vAxis: {
+                  ticks: [{ v: 0, f: 'Indisponível'}, {v: 0.2, f: 'Muito Bom'}, {v: 0.4, f: 'Bom'}, {v: 0.6, f: 'Médio'}
+                  , {v: 0.8, f: 'Fraco'}, {v: 1, f: 'Mau'}]
+              },
+              series: {
+                  0: {
+                    type: 'bars'
+                  },
+                  1: {
+                    type: 'line',
+                    color: 'grey',
+                    lineWidth: 0,
+                    pointSize: 0,
+                    visibleInLegend: false
+                  }
+                },
+              'tooltip' : {
+                  trigger: 'none'
+                },
+              animation: {
+                  duration: 1000,
+                  easing: 'out',
+                  startup: true
+              },
+          };
+
+        // Instantiate and draw our chart, passing in some options.
+        var chart = new google.visualization.ComboChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+
+          function resizeHandler() {
+                chart.draw(data, options);
+        }
+
+        if (window.addEventListener) {
+            window.addEventListener('resize', resizeHandler, false);
+        }
+        else if (window.attachEvent) {
+            window.attachEvent('onresize', resizeHandler);
+        }
+      }
+    </script>
+    <script type="text/javascript">
+        $(function () {
+            var polar_to_cartesian, svg_circle_arc_path, animate_arc;
+
+            polar_to_cartesian = function (cx, cy, radius, angle) {
+                var radians;
+                radians = (angle - 90) * Math.PI / 180.0;
+                return [Math.round((cx + (radius * Math.cos(radians))) * 100) / 100, Math.round((cy + (radius * Math.sin(radians))) * 100) / 100];
+            };
+
+            svg_circle_arc_path = function (x, y, radius, start_angle, end_angle) {
+                var end_xy, start_xy;
+                start_xy = polar_to_cartesian(x, y, radius, end_angle);
+                end_xy = polar_to_cartesian(x, y, radius, start_angle);
+                return "M " + start_xy[0] + " " + start_xy[1] + " A " + radius + " " + radius + " 0 0 0 " + end_xy[0] + " " + end_xy[1];
+            };
+
+            animate_arc = function (ratio, svg, perc) {
+                var arc, center, radius, startx, starty;
+                arc = svg.path('');
+                center = 500;
+                radius = 450;
+                startx = 0;
+                starty = 450;
+                return Snap.animate(0, ratio, (function (val) {
+                    var path;
+                    arc.remove();
+                    path = svg_circle_arc_path(500, 500, 450, -90, val * 180.0 - 90);
+                    arc = svg.path(path);
+                    arc.attr({
+                        class: 'data-arc'
+                    });
+                    perc.text(Math.round(val * 100) + '%');
+                }), Math.round(2000 * ratio), mina.easeinout);
+            };
+
+            $('.metric').each(function () {
+                var ratio, svg, perc;
+                ratio = $(this).data('ratio');
+                svg = Snap($(this).find('svg')[0]);
+                perc = $(this).find('text.percentage');
+                animate_arc(ratio, svg, perc);
+            });
+        });
+    </script>
+    {% endblock %}
+
+</body>
+</html>

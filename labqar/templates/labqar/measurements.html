@@ -1,0 +1,365 @@
+{% extends 'labqar/index.html' %}
+
+{% block header_title_block %}
+Medições
+{% endblock %}
+{% load staticfiles %}
+{% block background_block %}
+    .background {
+    {% if background == None %}
+        background: url("{% static 'labqar/images/background6.jpeg' %}") center / cover;
+    {% else %}
+        background: url("{{ MEDIA_URL }} {{background}} ") center / cover;
+    {% endif %}
+    }
+{% endblock %}
+
+{% block button_selected %}
+<a class="mdl-navigation__link " href="/"><i class="material-icons"
+                                                       role="presentation">assignment</i>Overview</a>
+<a class="mdl-navigation__link mdl-navigation__link_selected" href="/medicoes"><i class="material-icons"
+                                                                                    role="presentation">explore</i>Medições</a>
+<a class="mdl-navigation__link" href="/alerts/"><i class="material-icons" role="presentation">warning</i>Alertas</a>
+{% if request.user.is_staff %}
+                <a class="mdl-navigation__link" href="/admin/"><i class="material-icons" role="presentation">build</i>Página
+                    de
+                    Administração</a>
+                {% endif%}
+                <a class="mdl-navigation__link" href="#definicoes"><i class="material-icons"
+                                                                      role="presentation">settings</i>Definições de
+                    Conta</a>
+<a class="mdl-navigation__link" href="/accounts/logout/"
+   onclick="return confirm('Tem a certeza que pretende sair?')"><i class="material-icons"
+                                                                   role="presentation">power_settings_new</i>Sair</a>
+{% endblock %}
+
+{% block header_menu %}
+<div class="mdl-layout-spacer"></div>
+<h6> Campanha </h6>
+<button id="accbtn" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+    <i class="material-icons" role="presentation">arrow_drop_down</i>
+</button>
+<ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="accbtn">
+    {% if request.user.is_staff %}
+    <a class="mdl-menu__item" href="/medicoes/"> Medição Atual </a>
+    {% endif %}
+    {% for campaign in campaigns %}
+    <a class="mdl-menu__item" href="/medicoes/{{campaign.id}}"> {{ campaign }}</a>
+    {% endfor %}
+</ul>
+<form action="/day/measurements/" method='POST' id='formId'> {% csrf_token %}
+                        <input type="text" readonly="readonly" class="hint" value="Selecionar dia..." style="position: relative; z-index: 100000;" id="datepicker" name="datepicker"
+                           onfocus="if (this.className=='hint') { this.className = ''; this.value = ''; }"
+                           onblur="if (this.value == '') { this.className = 'hint'; this.value = 'Selecionar dia...'; }">
+                    </form>
+
+{% endblock %}
+
+{% block body_block %}
+<div class="measurement_time_div mdl-shadow--4dp">
+    <span class="measurement_time mdl-card__title-text">
+        {% if selected_campaign != None %}
+            Campanha: {{ selected_campaign }} <br/>
+        {% endif %}
+
+        {% if last_update != None %}
+                        Dados recolhidos a {{ last_update.date_time }}
+                    {% else %}
+                        Não existem dados para apresentar
+                    {% endif %}
+    </span>
+</div>
+<div class="mdl-grid">
+                {% for key, value in values.items %}
+                <div class="mdl-cell mdl-card mdl-shadow--4dp">
+                    <div class="mdl-card--expand">
+                        <table class="table">
+                            <tr>
+                                <td>
+                                    <table>
+                                        <tr>
+                                            <td class="mdl-card__title-text">
+                                                {{ value.name }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="mdl-card__subtitle-text">
+                                                Medido em {{ value.unit }}
+                                            </td>
+                                        </tr>
+                                        {% if value.stat > 0 and request.user.is_staff %}
+                                        <tr>
+                                            <td class="mdl-card__subtitle-text" style="color: red;">
+                                                Verificar medição
+                                            </td>
+                                        </tr>
+                                        {% endif%}
+                                    </table>
+                                </td>
+                                <td>
+                                    <div class="mdl-card--border"></div>
+                                </td>
+                                <td>
+                                    <h3 class="value">
+                                        {{ value.value }}
+                                    </h3>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="mdl-card__actions mdl-card--border">
+                        <a id="charts_button" class="mdl-button mdl-button--accent mdl-js-button mdl-js-ripple-effect" href="#grafico"
+                           onclick="clearView('{{ key }}', '{{ value.name }}' ,'{{selected_campaign}}')">
+                            Ver Gráficos
+                        </a>
+
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div id="grafico" class="mdl-card mdl-shadow--4dp">
+                    <div class="chart_wrap mdl-card--expand">
+                        <div id="chart">
+
+                        </div>
+
+                    </div>
+                    <div class="actions mdl-card__actions mdl-card--border">
+                        <a id='daily' class="mdl-button mdl-button--accent mdl-js-button mdl-js-ripple-effect">{% csrf_token %}
+                            24 Horas
+                        </a>
+                        {% if selected_campaign != None %}
+                        <a id='campaign' class="mdl-button mdl-button--accent mdl-js-button mdl-js-ripple-effect">
+                            Campanha
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div id="mask3" onclick="document.location='#';"></div> <!-- the only javascript -->
+{% endblock %}
+
+
+{% block aditional_scripts %}
+
+<script type="text/javascript">
+        $(function () {
+            var superuser = "{{ request.user.is_staff | safe }}";
+            var campaigns_js = [];
+            var count = 0;
+            var startDate, endDate;
+            var toggle = false;
+
+            {% for campaign in campaigns %}
+                campaigns_js[count++] = "{{campaign.cam_data_inicio | date:'Y-m-d'}}";
+                campaigns_js[count++] = "{{campaign.cam_data_final | date:'Y-m-d'}}";
+            {% endfor %}
+
+
+            $("#datepicker").datepicker({
+                dateFormat: "yy-mm-dd",
+                showOn: "both",
+                buttonImage: "{{STATIC_URL}}/static/labqar/images/calendar.svg",
+                buttonImageOnly: true,
+                buttonText: "Select date",
+                maxDate: '0',
+                beforeShowDay: function (date) {
+                    var valid = false;
+                    for(i = 0; i < campaigns_js.length-1; i = i + 2){
+                        toggle = !toggle;
+                        startDate = new Date(campaigns_js[i]);
+                        endDate = new Date(campaigns_js[i+1]);
+
+                        if(startDate.getTimezoneOffset() != 0)
+                            startDate = new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60 * 1000)
+                        if(endDate.getTimezoneOffset() != 0)
+                            endDate = new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60 * 1000)
+
+                        if (startDate <= date && date <= endDate) {
+                            valid = true;
+                        }
+                    }
+                    if(valid == true) {
+                        return [true, "Highlighted", ""];
+                    } else {
+                        if(superuser == "True")
+                            return [true,"",""];
+                        else
+                                return [false, "", ""];
+                    }
+                },
+                onSelect: function (date, instance) {
+                    $('#formId').submit();
+                }
+            });
+        });
+    </script>
+<script type="text/javascript">
+    var pol;
+    var polName;
+    function clearView(pollutant, pollutantName, selectedCampaign) {
+        document.getElementById('chart').innerHTML = "";
+        pol = pollutant;
+        polName = pollutantName;
+        selectedCampaign = selectedCampaign;
+        drawChart(pollutant);
+    }
+</script>
+<script type="text/javascript">
+    // Load Charts and the corechart and barchart packages.
+    google.charts.load('current', {'packages': ['corechart']});
+
+    // Draw the pie chart and bar chart when Charts is loaded.
+    google.charts.setOnLoadCallback(drawChart);
+
+    var lastClicked = 'daily';
+    var values = [];
+    function drawChart(pollutant) {
+        var options = {};
+
+        // Create the data table.
+        var data = new google.visualization.DataTable();
+
+        // Instantiate and draw our chart, passing in some options.
+        var chart = new google.visualization.ColumnChart(document.getElementById('chart'));
+        //chart.draw(data, options);
+
+        var button = document.getElementById('daily');
+
+        var values = []
+
+        button.click();
+
+        button.onclick = function () {
+            values = [];
+
+            var ajax_image = "<div style='text-align: center;'><h4>Por favor, aguarde...</h4><img src={{STATIC_URL}}/static/labqar/images/ajax-loader_2.gif /> </div>"
+            $('#chart').html(ajax_image);
+            $.ajax({
+                        type: "POST",
+                        url: "/charts_24/",
+                        data: {
+                            'date': '{{ last_update.date_time }}',
+                            'pollutant': pol,
+                            'campaign': '{{selected_campaign.id}}',
+                            'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        },
+                        dataType: 'json',
+                        success: function (response) {
+                            values = response.values;
+                            console.log(response);
+                            //if (values.length >= 2) {
+                                document.getElementById('chart').innerHTML = "";
+                                chart = new google.visualization.ColumnChart(document.getElementById('chart'));
+                                options = {
+                                    'title': 'Variação nas últimas 24h - ' + polName,
+                                    animation: {
+                                        duration: 1000,
+                                        easing: 'out',
+                                        startup: true
+                                    },
+                                    hAxis: {
+                                        direction: -1,
+                                        slantedText: true,
+                                        slantedTextAngle: 45
+                                    },
+                                    legend: {
+                                        position: 'none'
+                                    },
+                                    chartArea: {top: '10%', width: '75%', height: '65%'}
+                                };
+                                lastClicked = 'daily'
+
+                                data = new google.visualization.DataTable();
+                                data.addColumn('string', 'Data');
+                                data.addColumn('number', pollutant);
+                                data.addColumn({type: 'string', role: 'tooltip'});
+                                data.addRows(values);
+                                drawChart();
+                            /*}
+                            else {
+                                var error = "<div style='text-align:center; padding: 5%'><h4>Não existem dados suficientes para apresentar.</h4></div>"
+                                $('#chart').html(error);
+                            }
+                            ;*/
+                        },
+                        error: function (xhr, textStatus, err) {
+                            console.log("readyState: " + xhr.readyState);
+                            console.log("responseText: " + xhr.responseText);
+                            console.log("status: " + xhr.status);
+                            console.log("text status: " + textStatus);
+                            console.log("error: " + err);
+                        }
+                    }
+            );
+        }
+        {% if selected_campaign != None %}
+        var button2 = document.getElementById('campaign');
+        button2.onclick = function () {
+            values = [];
+
+            var ajax_image = "<div style='text-align: center'><h3>Por favor, aguarde...</h3><img src={{STATIC_URL}}/static/labqar/images/ajax-loader_2.gif /> </div>"
+            $('#chart').html(ajax_image);
+            $.ajax({
+                type: "POST",
+                url: "/charts_campaign/",
+                data: {'pollutant': pol,
+                        'campaign': '{{selected_campaign.id}}',
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'},
+                dataType: 'json',
+                success: function (response) {
+                    values = response.values;
+                    document.getElementById('chart').innerHTML = "";
+                    chart = new google.visualization.ColumnChart(document.getElementById('chart'));
+                    options = {
+                        'title': 'Variação ao longo da campanha - ' + polName,
+                        animation: {
+                            duration: 1000,
+                            easing: 'out',
+                            startup: true
+                        },
+                        hAxis: {
+                            direction: -1,
+                            slantedText: true,
+                            slantedTextAngle: 45
+                        },
+                        legend: {
+                            position: 'none'
+                        },
+                        chartArea: {top: '10%', width: '85%', height: '70%'}
+                    };
+                    lastClicked = 'daily'
+
+                    data = new google.visualization.DataTable();
+                    data.addColumn('string', 'Data');
+                    data.addColumn('number', pollutant);
+                    data.addRows(values);
+                    drawChart();
+                },
+                error: function (xhr,textStatus,err) {
+                    console.log("readyState: " + xhr.readyState);
+                    console.log("responseText: "+ xhr.responseText);
+                    console.log("status: " + xhr.status);
+                    console.log("text status: " + textStatus);
+                    console.log("error: " + err);
+                }
+            });
+        }
+        {% endif %}
+        function drawChart() {
+            chart.draw(data, options);
+        }
+
+        function resizeHandler() {
+            chart.draw(data, options);
+        }
+
+        if (window.addEventListener) {
+            window.addEventListener('resize', resizeHandler, false);
+        }
+        else if (window.attachEvent) {
+            window.attachEvent('onresize', resizeHandler);
+        }
+    }
+
+</script>
+{% endblock %}

@@ -1,0 +1,47 @@
+.login_card.mdl-card {
+    width: 400px;
+    height: 350px;
+    margin: auto;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
+
+.mdl-card__title-text {
+    color: white;
+}
+
+.card-header {
+    max-height: 25%;
+}
+
+.login-button {
+    text-align: center;
+    width: 100%;
+    position: relative;
+}
+
+.background {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
+
+.material-icons {
+    font-size: 24px;
+    color: #4CAF50;
+    margin-right: 25px;
+}
+
+.error {
+    color: red;
+    position: absolute;
+    font-size: 12px;
+    margin-top: 3px;
+}

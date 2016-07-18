@@ -1,0 +1,310 @@
+html, body {
+    font-family: 'Roboto', 'Helvetica', sans-serif;
+}
+
+.header_title .mdl-layout__drawer-button,
+.header_title {
+    color: #FFFFFF
+}
+
+.mdl-layout__drawer-button {
+    color: white;
+}
+
+.avatar {
+    margin-top: 0%;
+    width: 50%;
+    height:auto;
+}
+
+.avatar-name {
+    color: #FFFFFF;
+    font-weight: 500;
+
+}
+
+.hide {
+    display: none;
+}
+
+.drawer-header {
+    box-sizing: border-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    -webkit-justify-content: flex-end;
+    -ms-flex-pack: end;
+    justify-content: flex-end;
+    padding: 16px;
+    height: 151px;
+}
+
+/* iOS Safari specific workaround */
+.drawer .mdl-menu__container {
+    z-index: -1;
+}
+
+.drawer .navigation {
+    z-index: -2;
+}
+
+/* END iOS Safari specific workaround */
+
+.navigation {
+    -webkit-flex-grow: 1;
+    -ms-flex-positive: 1;
+    flex-grow: 1;
+}
+
+.mdl-navigation__link_selected {
+    background-color: rgb(220, 220, 220);
+    color: #FFFFFF;
+}
+
+.layout .navigation .mdl-navigation__link {
+    display: -webkit-flex !important;
+    display: -ms-flexbox !important;
+    display: flex !important;
+    -webkit-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    color: #536DFE;
+    font-weight: 500;
+}
+
+.layout .navigation .mdl-navigation__link:hover {
+    background-color: #4CAF50;
+    color: #FFFFFF;
+}
+
+.navigation .mdl-navigation__link .material-icons,
+#definicoes .material-icons{
+    font-size: 24px;
+    color: #536DFE;
+    margin-right: 32px;
+}
+
+#definicoes .material-icons{
+    font-size: 24px;
+    color: #4CAF50;
+    margin-right: 32px;
+}
+
+/* ARC GRAPH */
+.metric {
+    padding: 10%;
+}
+
+.metric svg {
+    max-width: 100%;
+}
+
+.metric path {
+    stroke-width: 75;
+    stroke: #ecf0f1;
+    fill: none;
+}
+
+.metric text {
+    font-family: 'Roboto', 'Helvetica', sans-serif;
+}
+
+.metric.grey path.data-arc,
+.info_grey {
+    stroke: #808080;
+    color: #808080;
+}
+
+.metric.red path.data-arc, .info_red {
+    stroke: #FF0000;
+    color: #FF0000;
+}
+
+.metric.orange path.data-arc, .info_orange {
+    stroke: #ffa500;
+    color: #ffa500;
+}
+
+.metric.yellow path.data-arc, .info_yellow {
+    stroke: #FFFF00;
+    color: #FFFF00;
+}
+
+.metric.green path.data-arc, .info_green {
+    stroke: #02dd02;
+    color: #02dd02;
+}
+
+.metric.darkgreen path.data-arc, .info_darkgreen {
+    stroke: #008000;
+    color: #008000;
+}
+.metric.participation text {
+    fill: #000000;
+}
+
+.mdl-card__actions {
+    text-align: left;
+}
+
+.waterfall {
+    background: #388E3C;
+}
+
+.table {
+    padding: 3%;
+    width: 100%;
+    height: 100%;
+}
+
+.nome {
+    font-size: 16px;
+}
+
+.unidade {
+    font-size: 14px;
+}
+
+.value {
+    font-size: 50px;
+    color: #536DFE;
+    text-align: right;
+}
+
+/* VER GRAFICO POPUP */
+
+#chart {
+    width: 100%;
+    height: 100%;
+}
+
+.chart_wrap {
+    width: 100%;
+    height: 91%;
+}
+
+#grafico, #grafico2 {
+    width: 70%;
+    height: 70%;
+    margin: 0 auto;
+    background: white;
+    color: black;
+    position: absolute;
+    top: 15%;
+    left: 15%;
+    z-index: 1000;
+    display: none;
+}
+
+#definicoes {
+    width: 400px;
+    height: 350px;
+    margin: auto;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: white;
+    color: black;
+    z-index: 1000;
+    display: none;
+}
+
+#mask, #mask2, #mask3 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 500;
+    width: 100%;
+    height: 100%;
+    display: none;
+}
+
+/* use :target to look for a link to the overlay then we find are mask */
+#grafico2:target, #grafico2:target + #mask2,
+#grafico:target, #grafico:target + #mask3,
+#definicoes:target, #definicoes:target + #mask{
+    display: block;
+    opacity: 1;
+}
+
+.measurement_time_div {
+    width: 100%;
+    height: auto;
+    background: white;
+    padding: 1%;
+    text-align: center;
+}
+
+.measurement_time {
+    display: inline-block;
+}
+
+.informations {
+    padding: 5%;
+    text-align: center;
+}
+
+.informations_item {
+    font-size: 20px;
+    padding: 10%;
+}
+
+.informations_icon {
+    font-size: 24px;
+    width: 36px;
+    height: 36px;
+}
+
+.mdl-outer-grid {
+    margin: 0 auto;
+}
+
+.error {
+    color: red;
+    position: absolute;
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+.changes-button {
+    text-align: center;
+    width: 100%;
+    position: relative;
+}
+
+.changes-button{
+    width: 100%;
+    height: 100%;
+}
+
+.accent:target {
+    background: #536DFE;
+}
+
+.changes_title {
+    padding: 2%;
+    text-align: center;
+}
+
+.Highlighted a{
+   background-color : #536DFE !important;
+   background-image :none !important;
+   color: White !important;
+   font-weight:bold !important;
+}
+
+.Highlighted2 a{
+   background-color : #4CAF50 !important;
+   background-image :none !important;
+   color: White !important;
+   font-weight:bold !important;
+}

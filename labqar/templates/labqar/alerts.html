@@ -1,0 +1,111 @@
+{% extends 'labqar/index.html' %}
+
+{% block header_title_block %}
+Alertas
+{% endblock %}
+{% load staticfiles %}
+{% block background_block %}
+    .background {
+    {% if background == None %}
+        background: url("{% static 'labqar/images/background6.jpeg' %}") center / cover;
+    {% else %}
+        background: url("{{ MEDIA_URL }} {{background}} ") center / cover;
+    {% endif %}
+    }
+{% endblock %}
+
+{% block button_selected %}
+<a class="mdl-navigation__link " href="/"><i class="material-icons"
+                                                       role="presentation">assignment</i>Overview</a>
+<a class="mdl-navigation__link" href="/medicoes"><i class="material-icons"
+                                                                                    role="presentation">explore</i>Medições</a>
+                <a class="mdl-navigation__link mdl-navigation__link_selected" href="/alerts/"><i class="material-icons" role="presentation">warning</i>Alertas</a>
+{% if request.user.is_staff %}
+                <a class="mdl-navigation__link" href="/admin/"><i class="material-icons" role="presentation">build</i>Página
+                    de
+                    Administração</a>
+                {% endif%}
+                <a class="mdl-navigation__link" href="#definicoes"><i class="material-icons"
+                                                                      role="presentation">settings</i>Definições de
+                    Conta</a>
+<a class="mdl-navigation__link" href="/accounts/logout/"
+   onclick="return confirm('Tem a certeza que pretende sair?')"><i class="material-icons"
+                                                                   role="presentation">power_settings_new</i>Sair</a>
+{% endblock %}
+
+{% block header_menu %}
+<div class="mdl-layout-spacer"></div>
+</ul>
+
+{% endblock %}
+
+{% block body_block %}
+<div class="mdl-grid">
+    <div class="mdl-cell--12-col">
+    <div class="mdl-card--expand" style="background: white;}">
+        <table id="example" class="display table-bordered dt-responsive" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Alerta</th>
+                <th>Campanha</th>
+                <th>Hora</th>
+                <th>Código</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alert in alerts %}
+                <tr>
+                    <td> {{alert.his_alerta}}</td>
+                    <td> {{alert.his_campanha}}</td>
+                    <td> {{alert.his_data}}</td>
+                    <td> {{alert.his_codigo}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block aditional_scripts %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/u/dt/jqc-1.12.3,dt-1.10.12,r-2.1.0/datatables.min.css"/>
+
+<script type="text/javascript" src="https://cdn.datatables.net/u/dt/jqc-1.12.3,dt-1.10.12,r-2.1.0/datatables.min.js"></script>
+
+
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/dataTables.material.min.js"></script>
+
+<script type="text/javascript">
+        $(document).ready(function() {
+    $('#example').DataTable( {
+        responsive: true,
+        "autoWidth": false,
+        "bSort": false,
+        columnDefs: [
+            {
+                targets: [ 0, 1, 2, 3 ],
+                className: 'mdl-data-table__cell--non-numeric'
+            },
+        ],"language": {
+            "sProcessing":   "A processar...",
+            "sLengthMenu":   "Mostrar _MENU_ registos",
+            "sZeroRecords":  "Não foram encontrados resultados",
+            "sInfo":         "Mostrando de _START_ até _END_ de _TOTAL_ registos",
+            "sInfoEmpty":    "Mostrando de 0 até 0 de 0 registos",
+            "sInfoFiltered": "(filtrado de _MAX_ registos no total)",
+            "sInfoPostFix":  "",
+            "sSearch":       "Procurar:",
+            "sUrl":          "",
+            "oPaginate": {
+                "sFirst":    "Primeiro",
+                "sPrevious": "Anterior",
+                "sNext":     "Seguinte",
+                "sLast":     "Último"
+            }
+        },
+    } );
+} );
+</script>
+{% endblock %}
